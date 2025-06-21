@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Netlify compatibility
+  trailingSlash: false,
+  images: {
+    unoptimized: true,
+  },
 };
 
 export default nextConfig;
