@@ -10,21 +10,61 @@ import {
 } from "@/components/ui/card"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { LogOut, Settings, Users, FileText, Star, Eye, Upload } from "lucide-react"
+import { LogOut, Settings, Users, FileText, Star, Eye, Upload, Image, Calendar, TrendingUp, Activity } from "lucide-react"
 import { useAuth } from "@/lib/auth"
+import { useEffect, useState } from "react"
+import { getUserDesigns, getDesignerStats } from "@/lib/designs"
+import { Design } from "@/lib/database.types"
+
+interface DashboardStats {
+  totalDesigns: number
+  totalPairs: number
+  totalRatings: number
+}
 
 export default function DashboardPage() {
   const router = useRouter()
   const { user, loading } = useAuth()
+  const [userDesigns, setUserDesigns] = useState<Design[]>([])
+  const [stats, setStats] = useState<DashboardStats>({ totalDesigns: 0, totalPairs: 0, totalRatings: 0 })
+  const [loadingData, setLoadingData] = useState(true)
+
+  useEffect(() => {
+    if (user && !loading) {
+      loadDashboardData()
+    }
+  }, [user, loading])
+
+  const loadDashboardData = async () => {
+    if (!user) return
+    
+    try {
+      setLoadingData(true)
+      
+      // Load user's designs
+      const designs = await getUserDesigns(user.id)
+      setUserDesigns(designs)
+      
+      // Load user's stats
+      const userStats = await getDesignerStats(user.id)
+      setStats(userStats)
+    } catch (error) {
+      console.error('Error loading dashboard data:', error)
+    } finally {
+      setLoadingData(false)
+    }
+  }
 
   const handleBrowseDesigns = () => {
-    console.log('Browse Designs button clicked')
     router.push('/designs')
   }
 
   const handleReviewDesigns = () => {
-    console.log('Review Designs button clicked')
     router.push('/designs')
+  }
+
+  const handleViewDesign = (designId: string) => {
+    router.push(`/design/${designId}`)
   }
 
   // Get user's first name from user metadata or email
@@ -46,12 +86,20 @@ export default function DashboardPage() {
     return "Designer"
   }
 
-  if (loading) {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    })
+  }
+
+  if (loading || loadingData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading your dashboard...</p>
         </div>
       </div>
     )
@@ -91,91 +139,137 @@ export default function DashboardPage() {
             Hello, {getFirstName()}!
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            Here's what's happening with your design reviews today.
+            Here's your design activity and analytics overview.
           </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Real Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Reviews</CardTitle>
-              <FileText className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <CardTitle className="text-sm font-medium">Total Designs</CardTitle>
+              <Image className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
+              <div className="text-2xl font-bold text-blue-600">{stats.totalDesigns}</div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                +2 from yesterday
+                Your uploaded designs
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Collaborators</CardTitle>
-              <Users className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <CardTitle className="text-sm font-medium">Design Pairs</CardTitle>
+              <FileText className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">8</div>
+              <div className="text-2xl font-bold text-green-600">{stats.totalPairs}</div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                +1 new this week
+                Created for review
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Average Rating</CardTitle>
-              <Star className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <CardTitle className="text-sm font-medium">Total Reviews</CardTitle>
+              <Star className="h-4 w-4 text-yellow-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">4.8</div>
+              <div className="text-2xl font-bold text-yellow-600">{stats.totalRatings}</div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                +0.2 from last month
+                Received feedback
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Activity</CardTitle>
+              <Activity className="h-4 w-4 text-purple-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-600">
+                {userDesigns.length > 0 ? 'Active' : 'New'}
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                {userDesigns.length > 0 ? 'Designer account' : 'Get started!'}
               </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* User's Designs Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <Card>
             <CardHeader>
-              <CardTitle>Recent Reviews</CardTitle>
+              <CardTitle className="flex items-center">
+                <Image className="h-5 w-5 mr-2" />
+                Your Designs
+              </CardTitle>
               <CardDescription>
-                Your latest design review activities
+                Designs you've uploaded ({userDesigns.length})
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Homepage Redesign</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">2 hours ago</p>
-                  </div>
-                  <Button variant="outline" size="sm">View</Button>
+              {userDesigns.length === 0 ? (
+                <div className="text-center py-8">
+                  <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-gray-400 mb-4">
+                    You haven't uploaded any designs yet.
+                  </p>
+                  <Button asChild>
+                    <Link href="/upload">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload Your First Design
+                    </Link>
+                  </Button>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Mobile App Icons</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">1 day ago</p>
-                  </div>
-                  <Button variant="outline" size="sm">View</Button>
+              ) : (
+                <div className="space-y-4">
+                  {userDesigns.slice(0, 5).map((design) => (
+                    <div key={design.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                          <Image className="h-6 w-6 text-gray-500" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{design.title}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {formatDate(design.created_at)}
+                          </p>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleViewDesign(design.id)}
+                      >
+                        View
+                      </Button>
+                    </div>
+                  ))}
+                  {userDesigns.length > 5 && (
+                    <div className="text-center pt-2">
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href="/designs">
+                          View all {userDesigns.length} designs
+                        </Link>
+                      </Button>
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Brand Guidelines</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">3 days ago</p>
-                  </div>
-                  <Button variant="outline" size="sm">View</Button>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle className="flex items-center">
+                <TrendingUp className="h-5 w-5 mr-2" />
+                Quick Actions
+              </CardTitle>
               <CardDescription>
                 Common tasks and shortcuts
               </CardDescription>
@@ -190,15 +284,17 @@ export default function DashboardPage() {
                 </Button>
                 <Button className="w-full justify-start" variant="outline" onClick={handleBrowseDesigns}>
                   <Eye className="h-4 w-4 mr-2" />
-                  Browse Designs
+                  Browse All Designs
                 </Button>
                 <Button className="w-full justify-start" variant="outline" onClick={handleReviewDesigns}>
                   <Star className="h-4 w-4 mr-2" />
                   Review Designs
                 </Button>
-                <Button className="w-full justify-start" variant="outline">
-                  <Users className="h-4 w-4 mr-2" />
-                  Invite Collaborator
+                <Button className="w-full justify-start" variant="outline" asChild>
+                  <Link href="/designs">
+                    <Users className="h-4 w-4 mr-2" />
+                    View Community
+                  </Link>
                 </Button>
               </div>
             </CardContent>
@@ -206,46 +302,48 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Activity */}
-        <div className="mt-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
-              <CardDescription>
-                Latest updates from your design review workflow
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center space-x-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">New review submitted</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Mobile App Icons received a 5-star review</p>
-                  </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">2 hours ago</span>
-                </div>
-                
-                <div className="flex items-center space-x-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Design approved</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Homepage Redesign has been approved by the team</p>
-                  </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">1 day ago</span>
-                </div>
-                
-                <div className="flex items-center space-x-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                  <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">Review requested</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Brand Guidelines needs your feedback</p>
-                  </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">3 days ago</span>
-                </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Calendar className="h-5 w-5 mr-2" />
+              Recent Activity
+            </CardTitle>
+            <CardDescription>
+              Your latest design activities and reviews
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {userDesigns.length === 0 ? (
+              <div className="text-center py-8">
+                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 dark:text-gray-400">
+                  No recent activity. Start by uploading your first design!
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            ) : (
+              <div className="space-y-4">
+                {userDesigns.slice(0, 3).map((design) => (
+                  <div key={design.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                        <Upload className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">Uploaded "{design.title}"</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {formatDate(design.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => handleViewDesign(design.id)}>
+                      View
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </main>
     </div>
   )
