@@ -87,37 +87,58 @@ export async function submitRating(testerId: string, designPairId: string, chose
   return data
 }
 
-export async function getDesignerStats(designerId: string) {
-  const { data: designs, error: designsError } = await supabase
-    .from('designs')
-    .select('*')
-    .eq('designer_id', designerId)
-    .eq('is_active', true)
+export async function getDesignerStats(userId: string) {
+  try {
+    console.log('Getting stats for user:', userId)
+    
+    // Get user's individual designs
+    const { data: designs, error: designsError } = await supabase
+      .from('designs')
+      .select('*')
+      .eq('user_id', userId)
 
-  if (designsError) throw designsError
+    if (designsError) {
+      console.error('Error fetching designs:', designsError)
+      throw designsError
+    }
 
-  const { data: pairs, error: pairsError } = await supabase
-    .from('design_pairs')
-    .select('*')
-    .eq('designer_id', designerId)
-    .eq('is_active', true)
+    // Get user's design pairs
+    const { data: pairs, error: pairsError } = await supabase
+      .from('design_pairs')
+      .select('*')
+      .eq('designer_id', userId)
 
-  if (pairsError) throw pairsError
+    if (pairsError) {
+      console.error('Error fetching design pairs:', pairsError)
+      throw pairsError
+    }
 
-  const { data: ratings, error: ratingsError } = await supabase
-    .from('ratings')
-    .select(`
-      *,
-      design_pair:design_pairs!inner(designer_id)
-    `)
-    .eq('design_pair.designer_id', designerId)
+    // Get ratings for user's design pairs
+    const { data: ratings, error: ratingsError } = await supabase
+      .from('ratings')
+      .select('*')
+      .in('design_pair_id', pairs?.map(p => p.id) || [])
 
-  if (ratingsError) throw ratingsError
+    if (ratingsError) {
+      console.error('Error fetching ratings:', ratingsError)
+      throw ratingsError
+    }
 
-  return {
-    totalDesigns: designs?.length || 0,
-    totalPairs: pairs?.length || 0,
-    totalRatings: ratings?.length || 0
+    const stats = {
+      totalDesigns: designs?.length || 0,
+      totalPairs: pairs?.length || 0,
+      totalRatings: ratings?.length || 0
+    }
+
+    console.log('Stats calculated:', stats)
+    return stats
+  } catch (error) {
+    console.error('Error in getDesignerStats:', error)
+    return {
+      totalDesigns: 0,
+      totalPairs: 0,
+      totalRatings: 0
+    }
   }
 }
 
@@ -314,7 +335,7 @@ export async function getUserDesigns(userId: string): Promise<Design[]> {
   const { data, error } = await supabase
     .from('designs')
     .select('*')
-    .eq('designer_id', userId)
+    .eq('user_id', userId)
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -338,7 +359,6 @@ export async function getUserDesignPairs(userId: string): Promise<DesignPair[]> 
       design_b:designs!design_b_id(*)
     `)
     .eq('designer_id', userId)
-    .eq('is_active', true)
     .order('created_at', { ascending: false })
 
   if (error) {
