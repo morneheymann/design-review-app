@@ -5,9 +5,17 @@ import { User as SupabaseUser } from '@supabase/supabase-js'
 
 // Check if Supabase is properly configured
 const isSupabaseConfigured = () => {
-  return process.env.NEXT_PUBLIC_SUPABASE_URL && 
-         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-         process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://placeholder.supabase.co'
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  
+  console.log('Environment check:', {
+    url: url,
+    hasKey: !!key,
+    keyLength: key?.length,
+    isPlaceholder: url === 'https://placeholder.supabase.co'
+  })
+  
+  return url && key && url !== 'https://placeholder.supabase.co' && key !== 'placeholder_key'
 }
 
 // React hook for authentication
