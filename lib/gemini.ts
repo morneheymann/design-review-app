@@ -40,14 +40,41 @@ export async function analyzeDesignPair(
       designAUrl,
       designBUrl,
       title,
-      hasApiKey: !!process.env.NEXT_PUBLIC_GEMINI_API_KEY
+      hasApiKey: !!process.env.NEXT_PUBLIC_GEMINI_API_KEY,
+      apiKeyPreview: process.env.NEXT_PUBLIC_GEMINI_API_KEY ? 
+        process.env.NEXT_PUBLIC_GEMINI_API_KEY.substring(0, 10) + '...' : 
+        'none'
     })
 
     if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
       throw new Error('Gemini API key is not configured')
     }
 
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+    // Try different models in order of preference
+    const models = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro-vision']
+    let model = null
+    let lastError = null
+
+    for (const modelName of models) {
+      try {
+        console.log(`Trying model: ${modelName}`)
+        model = genAI.getGenerativeModel({ model: modelName })
+        
+        // Test the model with a simple prompt first
+        const testResult = await model.generateContent('Hello, this is a test.')
+        await testResult.response
+        console.log(`Model ${modelName} is working`)
+        break
+      } catch (error) {
+        console.log(`Model ${modelName} failed:`, error)
+        lastError = error
+        continue
+      }
+    }
+
+    if (!model) {
+      throw new Error(`All models failed. Last error: ${lastError}`)
+    }
 
     const prompt = `
 You are an expert UI/UX designer and design analyst. Analyze these two design variations and provide a comprehensive comparison.
@@ -147,7 +174,31 @@ async function fetchImageAsBase64(imageUrl: string): Promise<string> {
 
 export async function getDesignInsights(designUrl: string, context?: string): Promise<string> {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+    // Try different models in order of preference
+    const models = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro-vision']
+    let model = null
+    let lastError = null
+
+    for (const modelName of models) {
+      try {
+        console.log(`Trying model for insights: ${modelName}`)
+        model = genAI.getGenerativeModel({ model: modelName })
+        
+        // Test the model with a simple prompt first
+        const testResult = await model.generateContent('Hello, this is a test.')
+        await testResult.response
+        console.log(`Model ${modelName} is working for insights`)
+        break
+      } catch (error) {
+        console.log(`Model ${modelName} failed for insights:`, error)
+        lastError = error
+        continue
+      }
+    }
+
+    if (!model) {
+      throw new Error(`All models failed for insights. Last error: ${lastError}`)
+    }
 
     const prompt = `
 You are a design expert. Analyze this design and provide insights about:
