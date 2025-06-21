@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { ArrowLeft, Star, Eye, Search, Filter, GitCompare, Trash2, Sparkles, Upload, Palette, BarChart3 } from "lucide-react"
+import { ArrowLeft, Star, Eye, Search, Filter, GitCompare, Trash2, Sparkles, Upload, Palette, BarChart3, Image } from "lucide-react"
 import { getDesignPairsForReview, testDesignsAccess } from '@/lib/reviews'
 import { useAuth } from '@/lib/auth'
 import { DesignPair } from '@/lib/database.types'
@@ -400,6 +400,46 @@ export default function DesignsPage() {
                   {pair.description && (
                     <p className="text-gray-600 text-sm mb-4 line-clamp-2">{pair.description}</p>
                   )}
+                  
+                  {/* Design Images Preview */}
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="relative aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden group-hover:shadow-lg transition-shadow duration-200">
+                      {pair.design_a?.image_url ? (
+                        <img 
+                          src={pair.design_a.image_url} 
+                          alt="Design A"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <div className="w-8 h-8 bg-gradient-to-r from-gray-300 to-gray-400 rounded-lg flex items-center justify-center">
+                            <Image className="h-4 w-4 text-gray-500" />
+                          </div>
+                        </div>
+                      )}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+                        <span className="text-xs font-semibold text-white">Design A</span>
+                      </div>
+                    </div>
+                    <div className="relative aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden group-hover:shadow-lg transition-shadow duration-200">
+                      {pair.design_b?.image_url ? (
+                        <img 
+                          src={pair.design_b.image_url} 
+                          alt="Design B"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <div className="w-8 h-8 bg-gradient-to-r from-gray-300 to-gray-400 rounded-lg flex items-center justify-center">
+                            <Image className="h-4 w-4 text-gray-500" />
+                          </div>
+                        </div>
+                      )}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+                        <span className="text-xs font-semibold text-white">Design B</span>
+                      </div>
+                    </div>
+                  </div>
                   
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-2">
