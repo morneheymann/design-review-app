@@ -21,7 +21,8 @@ import {
   MessageSquare,
   Play,
   Award,
-  Globe
+  Globe,
+  BarChart3
 } from "lucide-react"
 
 export default function HomePage() {
@@ -45,7 +46,7 @@ export default function HomePage() {
         <div className="text-center">
           <div className="relative">
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-500 border-t-transparent mx-auto mb-6"></div>
-            <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-blue-500 border-b-transparent animate-spin-reverse"></div>
+            <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-blue-500 border-b-transparent animate-spin" style={{ animationDirection: 'reverse' }}></div>
           </div>
           <h2 className="text-xl font-semibold text-white">Loading Design Review App...</h2>
         </div>
@@ -59,7 +60,7 @@ export default function HomePage() {
         <div className="text-center">
           <div className="relative">
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-500 border-t-transparent mx-auto mb-6"></div>
-            <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-blue-500 border-b-transparent animate-spin-reverse"></div>
+            <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-blue-500 border-b-transparent animate-spin" style={{ animationDirection: 'reverse' }}></div>
           </div>
           <h2 className="text-xl font-semibold text-white">Welcome back! Redirecting...</h2>
         </div>
@@ -75,17 +76,17 @@ export default function HomePage() {
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Palette className="h-6 w-6 text-white" />
+                <Sparkles className="h-6 w-6 text-white" />
               </div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                Design Review App
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                DesignReview
               </h1>
             </div>
             <div className="flex items-center space-x-6">
-              <Button variant="ghost" asChild className="text-gray-700 hover:text-gray-900 hover:bg-gray-100/50">
+              <Button variant="ghost" asChild className="text-gray-700 hover:text-gray-900 hover:bg-gray-100/50 font-medium">
                 <Link href="/login">Sign In</Link>
               </Button>
-              <Button asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+              <Button asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-semibold px-6 py-2.5 rounded-xl">
                 <Link href="/register">Get Started</Link>
               </Button>
             </div>
@@ -107,26 +108,27 @@ export default function HomePage() {
               AI-Powered Design Analysis
             </div>
             <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-8 leading-tight">
-              Get Instant Design
-              <span className="block bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                Feedback
+              <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                AI-Powered
               </span>
+              <br />
+              <span className="text-gray-900">Design Reviews</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto mb-12 leading-relaxed">
-              Upload your designs, compare variations, and get AI-powered insights to improve your work. 
-              Perfect for designers, developers, and creative teams.
+              Get instant, intelligent feedback on your designs. Upload your work and receive detailed analysis powered by advanced AI technology.
             </p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <Button size="lg" asChild className="text-lg px-10 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 font-semibold">
+              <Button size="lg" asChild className="text-lg px-10 py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 font-semibold rounded-2xl group">
                 <Link href="/register">
-                  Start Creating
-                  <ArrowRight className="ml-3 h-6 w-6" />
+                  <Upload className="mr-3 h-6 w-6 group-hover:rotate-12 transition-transform duration-300" />
+                  Start Your Review
+                  <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-1 transition-transform duration-300" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" asChild className="text-lg px-10 py-6 border-2 border-gray-300 hover:border-gray-400 hover:bg-gray-50 transform hover:scale-105 transition-all duration-300 font-semibold">
+              <Button size="lg" variant="outline" asChild className="text-lg px-10 py-6 border-2 border-gray-300 hover:border-gray-400 hover:bg-white/50 transform hover:scale-105 transition-all duration-300 font-semibold rounded-2xl">
                 <Link href="/login">
                   <Play className="mr-3 h-5 w-5" />
-                  Watch Demo
+                  View Dashboard
                 </Link>
               </Button>
             </div>
@@ -138,20 +140,20 @@ export default function HomePage() {
       <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+            <div className="text-center group">
+              <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300">
                 10K+
               </div>
               <div className="text-gray-600 font-medium">Designs Analyzed</div>
             </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+            <div className="text-center group">
+              <div className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300">
                 5K+
               </div>
               <div className="text-gray-600 font-medium">Happy Users</div>
             </div>
-            <div className="text-center">
-              <div className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent mb-2">
+            <div className="text-center group">
+              <div className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent mb-2 group-hover:scale-110 transition-transform duration-300">
                 99%
               </div>
               <div className="text-gray-600 font-medium">Satisfaction Rate</div>
@@ -165,82 +167,46 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Everything you need to improve your designs
+              Why Choose DesignReview?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              From AI analysis to community feedback, we've got you covered with powerful tools and insights
+              Experience the future of design feedback with our cutting-edge AI technology
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-white to-blue-50/30">
+            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-white to-blue-50/30 group">
               <CardHeader className="pb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-                  <Upload className="h-8 w-8 text-white" />
-                </div>
-                <CardTitle className="text-xl font-bold text-gray-900">Easy Upload</CardTitle>
-                <CardDescription className="text-gray-600 leading-relaxed">
-                  Upload your designs with drag & drop. Support for all major image formats with instant preview.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-white to-green-50/30">
-              <CardHeader className="pb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <Zap className="h-8 w-8 text-white" />
                 </div>
-                <CardTitle className="text-xl font-bold text-gray-900">AI Analysis</CardTitle>
+                <CardTitle className="text-xl font-bold text-gray-900">Lightning Fast</CardTitle>
                 <CardDescription className="text-gray-600 leading-relaxed">
-                  Get instant AI-powered feedback on design choices, usability, aesthetics, and best practices.
+                  Get comprehensive design analysis in seconds, not hours. Our AI processes your designs instantly.
                 </CardDescription>
               </CardHeader>
             </Card>
 
-            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-white to-purple-50/30">
+            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-white to-purple-50/30 group">
               <CardHeader className="pb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-violet-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <Sparkles className="h-8 w-8 text-white" />
+                </div>
+                <CardTitle className="text-xl font-bold text-gray-900">AI-Powered Insights</CardTitle>
+                <CardDescription className="text-gray-600 leading-relaxed">
+                  Advanced AI technology provides detailed feedback on composition, color theory, and design principles.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
+            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-white to-indigo-50/30 group">
+              <CardHeader className="pb-6">
+                <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <Users className="h-8 w-8 text-white" />
                 </div>
-                <CardTitle className="text-xl font-bold text-gray-900">Community Reviews</CardTitle>
+                <CardTitle className="text-xl font-bold text-gray-900">Designer Focused</CardTitle>
                 <CardDescription className="text-gray-600 leading-relaxed">
-                  Get feedback from other designers and share your expertise with the global community.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-white to-yellow-50/30">
-              <CardHeader className="pb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-                  <Eye className="h-8 w-8 text-white" />
-                </div>
-                <CardTitle className="text-xl font-bold text-gray-900">Design Comparison</CardTitle>
-                <CardDescription className="text-gray-600 leading-relaxed">
-                  Compare different design variations side-by-side to make better informed decisions.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-white to-red-50/30">
-              <CardHeader className="pb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-                  <TrendingUp className="h-8 w-8 text-white" />
-                </div>
-                <CardTitle className="text-xl font-bold text-gray-900">Track Progress</CardTitle>
-                <CardDescription className="text-gray-600 leading-relaxed">
-                  Monitor your design improvements over time with detailed analytics and insights.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-white to-indigo-50/30">
-              <CardHeader className="pb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-lg">
-                  <Shield className="h-8 w-8 text-white" />
-                </div>
-                <CardTitle className="text-xl font-bold text-gray-900">Secure & Private</CardTitle>
-                <CardDescription className="text-gray-600 leading-relaxed">
-                  Your designs are secure and private. Full control over who sees your work and data.
+                  Built by designers, for designers. Get feedback that actually helps improve your work.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -249,45 +215,63 @@ export default function HomePage() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-blue-50/30">
+      <section className="py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              How it works
+              How It Works
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-              Get started in just 3 simple steps and transform your design workflow
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Three simple steps to get professional design feedback
             </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            <div className="text-center relative">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl">
-                <span className="text-white text-3xl font-bold">1</span>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Step 1 */}
+            <div className="text-center group">
+              <div className="relative mb-8">
+                <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                  <span className="text-2xl font-bold text-white">1</span>
+                </div>
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-green-400 to-green-500 rounded-full flex items-center justify-center">
+                  <Upload className="w-4 h-4 text-white" />
+                </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">Upload Your Designs</h3>
-              <p className="text-gray-600 leading-relaxed text-lg">
-                Upload two design variations you want to compare. Our platform supports all major image formats with instant processing.
+              <h3 className="text-2xl font-bold mb-4 text-gray-900">Upload Your Design</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Simply drag and drop your design file or click to browse. We support all major image formats.
               </p>
             </div>
-
-            <div className="text-center relative">
-              <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl">
-                <span className="text-white text-3xl font-bold">2</span>
+            
+            {/* Step 2 */}
+            <div className="text-center group">
+              <div className="relative mb-8">
+                <div className="w-20 h-20 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                  <span className="text-2xl font-bold text-white">2</span>
+                </div>
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-blue-400 to-blue-500 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-white" />
+                </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">Get AI Analysis</h3>
-              <p className="text-gray-600 leading-relaxed text-lg">
-                Our advanced AI analyzes your designs and provides detailed feedback on usability, aesthetics, and design choices.
+              <h3 className="text-2xl font-bold mb-4 text-gray-900">AI Analysis</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Our advanced AI analyzes your design for composition, color theory, typography, and more.
               </p>
             </div>
-
-            <div className="text-center relative">
-              <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-violet-600 rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl">
-                <span className="text-white text-3xl font-bold">3</span>
+            
+            {/* Step 3 */}
+            <div className="text-center group">
+              <div className="relative mb-8">
+                <div className="w-20 h-20 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                  <span className="text-2xl font-bold text-white">3</span>
+                </div>
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-purple-400 to-purple-500 rounded-full flex items-center justify-center">
+                  <BarChart3 className="w-4 h-4 text-white" />
+                </div>
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">Share & Improve</h3>
-              <p className="text-gray-600 leading-relaxed text-lg">
-                Share your designs with the community for additional feedback and continuously improve your work.
+              <h3 className="text-2xl font-bold mb-4 text-gray-900">Get Results</h3>
+              <p className="text-gray-600 leading-relaxed">
+                Receive detailed feedback and actionable insights to improve your design skills.
               </p>
             </div>
           </div>
@@ -295,84 +279,43 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 relative overflow-hidden">
-        {/* Background Elements */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 via-purple-600/90 to-indigo-700/90"></div>
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.05"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] opacity-30"></div>
-        
-        <div className="relative max-w-5xl mx-auto text-center">
-          <div className="mb-8">
-            <Award className="h-16 w-16 text-white/80 mx-auto mb-6" />
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-8">
-              Ready to improve your designs?
-            </h2>
-            <p className="text-xl md:text-2xl text-blue-100 mb-12 max-w-3xl mx-auto leading-relaxed">
-              Join thousands of designers who are already getting better feedback and creating amazing work with our platform.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <Button size="lg" variant="secondary" asChild className="text-lg px-12 py-8 bg-white text-blue-600 hover:bg-gray-100 shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 font-bold">
-                <Link href="/register">
-                  Start Free Today
-                  <ArrowRight className="ml-3 h-6 w-6" />
-                </Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild className="text-lg px-12 py-8 border-2 border-white/30 text-white hover:bg-white/10 backdrop-blur-sm transform hover:scale-105 transition-all duration-300 font-semibold">
-                <Link href="/login">
-                  <Globe className="mr-3 h-5 w-5" />
-                  Explore Platform
-                </Link>
-              </Button>
-            </div>
-          </div>
+      <section className="py-32 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-blue-600 to-purple-600">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-4xl md:text-5xl font-bold mb-6 text-white">
+            Ready to Transform Your Designs?
+          </h2>
+          <p className="text-xl text-blue-100 mb-8 leading-relaxed">
+            Join thousands of designers who are already using AI to improve their work. Start your first review today.
+          </p>
+          <Button size="lg" asChild className="text-lg px-10 py-6 bg-white text-blue-600 hover:bg-gray-50 rounded-2xl font-semibold shadow-2xl transform hover:scale-105 transition-all duration-300 group">
+            <Link href="/register">
+              <Upload className="mr-3 h-6 w-6" />
+              Start Free Review
+              <ArrowRight className="ml-3 h-6 w-6" />
+            </Link>
+          </Button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
-            <div>
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
-                  <Palette className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold">Design Review App</h3>
-              </div>
-              <p className="text-gray-400 leading-relaxed">
-                The modern platform for design collaboration and AI-powered feedback. Transform your design workflow today.
-              </p>
+      <footer className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-900 text-white">
+        <div className="max-w-7xl mx-auto text-center">
+          <div className="flex items-center justify-center space-x-3 mb-6">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <Sparkles className="w-5 h-5 text-white" />
             </div>
-            
-            <div>
-              <h4 className="font-bold text-lg mb-6">Product</h4>
-              <ul className="space-y-4 text-gray-400">
-                <li><Link href="/upload" className="hover:text-white transition-colors duration-200">Upload Designs</Link></li>
-                <li><Link href="/designs" className="hover:text-white transition-colors duration-200">Browse Designs</Link></li>
-                <li><Link href="/dashboard" className="hover:text-white transition-colors duration-200">Dashboard</Link></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-bold text-lg mb-6">Support</h4>
-              <ul className="space-y-4 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors duration-200">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors duration-200">Contact Us</a></li>
-                <li><a href="#" className="hover:text-white transition-colors duration-200">Privacy Policy</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-bold text-lg mb-6">Connect</h4>
-              <ul className="space-y-4 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors duration-200">Twitter</a></li>
-                <li><a href="#" className="hover:text-white transition-colors duration-200">LinkedIn</a></li>
-                <li><a href="#" className="hover:text-white transition-colors duration-200">GitHub</a></li>
-              </ul>
-            </div>
+            <span className="text-xl font-bold">DesignReview</span>
           </div>
-          
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Design Review App. All rights reserved.</p>
+          <p className="text-gray-400 mb-6">
+            AI-powered design feedback for modern creators
+          </p>
+          <div className="flex justify-center space-x-6 text-sm text-gray-400">
+            <Link href="/login" className="hover:text-white transition-colors duration-200">
+              Sign In
+            </Link>
+            <Link href="/register" className="hover:text-white transition-colors duration-200">
+              Get Started
+            </Link>
           </div>
         </div>
       </footer>
