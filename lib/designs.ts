@@ -325,6 +325,30 @@ export async function getUserDesigns(userId: string): Promise<Design[]> {
   return data || []
 }
 
+export async function getUserDesignPairs(userId: string): Promise<DesignPair[]> {
+  if (!isSupabaseConfigured()) {
+    return []
+  }
+
+  const { data, error } = await supabase
+    .from('design_pairs')
+    .select(`
+      *,
+      design_a:designs!design_a_id(*),
+      design_b:designs!design_b_id(*)
+    `)
+    .eq('designer_id', userId)
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching user design pairs:', error)
+    return []
+  }
+
+  return data || []
+}
+
 export async function getDesignPairById(id: string): Promise<DesignPair | null> {
   console.log('getDesignPairById: Called with ID:', id)
   

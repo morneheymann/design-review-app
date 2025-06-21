@@ -10,11 +10,11 @@ import {
 } from "@/components/ui/card"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { LogOut, Settings, Users, FileText, Star, Eye, Upload, Image, Calendar, TrendingUp, Activity } from "lucide-react"
+import { LogOut, Settings, Users, FileText, Star, Eye, Upload, Image, Calendar, TrendingUp, Activity, GitCompare } from "lucide-react"
 import { useAuth } from "@/lib/auth"
 import { useEffect, useState } from "react"
-import { getUserDesigns, getDesignerStats } from "@/lib/designs"
-import { Design } from "@/lib/database.types"
+import { getUserDesigns, getUserDesignPairs, getDesignerStats } from "@/lib/designs"
+import { Design, DesignPair } from "@/lib/database.types"
 
 interface DashboardStats {
   totalDesigns: number
@@ -26,6 +26,7 @@ export default function DashboardPage() {
   const router = useRouter()
   const { user, loading } = useAuth()
   const [userDesigns, setUserDesigns] = useState<Design[]>([])
+  const [userDesignPairs, setUserDesignPairs] = useState<DesignPair[]>([])
   const [stats, setStats] = useState<DashboardStats>({ totalDesigns: 0, totalPairs: 0, totalRatings: 0 })
   const [loadingData, setLoadingData] = useState(true)
 
@@ -41,9 +42,13 @@ export default function DashboardPage() {
     try {
       setLoadingData(true)
       
-      // Load user's designs
+      // Load user's individual designs
       const designs = await getUserDesigns(user.id)
       setUserDesigns(designs)
+      
+      // Load user's design pairs (comparisons)
+      const designPairs = await getUserDesignPairs(user.id)
+      setUserDesignPairs(designPairs)
       
       // Load user's stats
       const userStats = await getDesignerStats(user.id)
@@ -65,6 +70,10 @@ export default function DashboardPage() {
 
   const handleViewDesign = (designId: string) => {
     router.push(`/design/${designId}`)
+  }
+
+  const handleViewComparison = (pairId: string) => {
+    router.push(`/review/${pairId}`)
   }
 
   // Get user's first name from user metadata or email
@@ -104,6 +113,8 @@ export default function DashboardPage() {
       </div>
     )
   }
+
+  const totalItems = userDesigns.length + userDesignPairs.length
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
@@ -191,10 +202,10 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-purple-600">
-                {userDesigns.length > 0 ? 'Active' : 'New'}
+                {totalItems > 0 ? 'Active' : 'New'}
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {userDesigns.length > 0 ? 'Designer account' : 'Get started!'}
+                {totalItems > 0 ? 'Designer account' : 'Get started!'}
               </p>
             </CardContent>
           </Card>
@@ -206,14 +217,14 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Image className="h-5 w-5 mr-2" />
-                Your Designs
+                Your Designs & Comparisons
               </CardTitle>
               <CardDescription>
-                Designs you've uploaded ({userDesigns.length})
+                Your uploaded designs and design comparisons ({totalItems})
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {userDesigns.length === 0 ? (
+              {totalItems === 0 ? (
                 <div className="text-center py-8">
                   <Image className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-500 dark:text-gray-400 mb-4">
@@ -228,7 +239,35 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {userDesigns.slice(0, 5).map((design) => (
+                  {/* Design Comparisons (Pairs) */}
+                  {userDesignPairs.slice(0, 3).map((pair) => (
+                    <div key={pair.id} className="flex items-center justify-between p-3 border rounded-lg bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-green-100 dark:bg-green-800 rounded-lg flex items-center justify-center">
+                          <GitCompare className="h-6 w-6 text-green-600 dark:text-green-400" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{pair.title}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Design Comparison • {formatDate(pair.created_at)}
+                          </p>
+                          <p className="text-xs text-green-600 dark:text-green-400">
+                            {pair.design_a?.title} vs {pair.design_b?.title}
+                          </p>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleViewComparison(pair.id)}
+                      >
+                        Review
+                      </Button>
+                    </div>
+                  ))}
+
+                  {/* Individual Designs */}
+                  {userDesigns.slice(0, 3).map((design) => (
                     <div key={design.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
@@ -237,7 +276,7 @@ export default function DashboardPage() {
                         <div>
                           <p className="font-medium text-sm">{design.title}</p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {formatDate(design.created_at)}
+                            Individual Design • {formatDate(design.created_at)}
                           </p>
                         </div>
                       </div>
@@ -250,11 +289,12 @@ export default function DashboardPage() {
                       </Button>
                     </div>
                   ))}
-                  {userDesigns.length > 5 && (
+
+                  {totalItems > 6 && (
                     <div className="text-center pt-2">
                       <Button variant="ghost" size="sm" asChild>
                         <Link href="/designs">
-                          View all {userDesigns.length} designs
+                          View all {totalItems} items
                         </Link>
                       </Button>
                     </div>
@@ -313,7 +353,7 @@ export default function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {userDesigns.length === 0 ? (
+            {totalItems === 0 ? (
               <div className="text-center py-8">
                 <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-500 dark:text-gray-400">
@@ -322,7 +362,28 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {userDesigns.slice(0, 3).map((design) => (
+                {/* Show design pairs first (they're more recent) */}
+                {userDesignPairs.slice(0, 2).map((pair) => (
+                  <div key={pair.id} className="flex items-center justify-between p-3 border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center">
+                        <GitCompare className="h-5 w-5 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">Created comparison "{pair.title}"</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {formatDate(pair.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => handleViewComparison(pair.id)}>
+                      Review
+                    </Button>
+                  </div>
+                ))}
+
+                {/* Then show individual designs */}
+                {userDesigns.slice(0, 2).map((design) => (
                   <div key={design.id} className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
