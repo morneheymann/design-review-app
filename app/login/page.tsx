@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -13,8 +13,9 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
-import { Eye, EyeOff, Loader2, Mail, Lock, ArrowLeft, Sparkles, AlertCircle } from "lucide-react"
-import { signIn } from "@/lib/auth"
+import { Eye, EyeOff, Loader2, Mail, Lock, Sparkles, AlertCircle } from "lucide-react"
+import { signIn, useAuth } from "@/lib/auth"
+import { useRouter } from "next/navigation"
 
 interface FormData {
   email: string
@@ -28,6 +29,8 @@ interface FormErrors {
 }
 
 export default function LoginPage() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
   const [formData, setFormData] = useState<FormData>({
     email: "",
     password: ""
@@ -35,6 +38,13 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<FormErrors>({})
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/dashboard')
+    }
+  }, [user, loading, router])
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {}
@@ -59,10 +69,12 @@ export default function LoginPage() {
     if (!validateForm()) return
 
     setIsLoading(true)
+    setErrors({})
     
     try {
       await signIn(formData.email, formData.password)
-      // Success message will be handled by the auth system
+      // The useAuth hook will automatically update the user state
+      // and the useEffect above will handle the redirect
     } catch (error: any) {
       console.error("Login error:", error)
       
@@ -89,19 +101,21 @@ export default function LoginPage() {
     }
   }
 
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-700">Checking authentication...</h2>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Back to Home */}
-        <div className="mb-6">
-          <Button variant="ghost" asChild className="flex items-center gap-2">
-            <Link href="/">
-              <ArrowLeft className="h-4 w-4" />
-              Back to Home
-            </Link>
-          </Button>
-        </div>
-
         {/* Main Card */}
         <Card className="shadow-xl border-0">
           <CardHeader className="space-y-1 pb-4">
