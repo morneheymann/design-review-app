@@ -11,7 +11,7 @@ import {
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { LogOut, Settings, Users, FileText, Star, Eye, Upload, Image, Calendar, TrendingUp, Activity, GitCompare, Sparkles, Palette, BarChart3, Zap } from "lucide-react"
-import { useAuth } from "@/lib/auth"
+import { useAuth, signOut } from "@/lib/auth"
 import { useEffect, useState } from "react"
 import { getUserDesigns, getUserDesignPairs, getDesignerStats } from "@/lib/designs"
 import { Design, DesignPair } from "@/lib/database.types"
@@ -29,6 +29,7 @@ export default function DashboardPage() {
   const [userDesignPairs, setUserDesignPairs] = useState<DesignPair[]>([])
   const [stats, setStats] = useState<DashboardStats>({ totalDesigns: 0, totalPairs: 0, totalRatings: 0 })
   const [loadingData, setLoadingData] = useState(true)
+  const [loggingOut, setLoggingOut] = useState(false)
 
   useEffect(() => {
     if (user && !loading) {
@@ -57,6 +58,17 @@ export default function DashboardPage() {
       console.error('Error loading dashboard data:', error)
     } finally {
       setLoadingData(false)
+    }
+  }
+
+  const handleLogout = async () => {
+    try {
+      setLoggingOut(true)
+      await signOut()
+      router.push('/login')
+    } catch (error) {
+      console.error('Error signing out:', error)
+      setLoggingOut(false)
     }
   }
 
@@ -138,11 +150,15 @@ export default function DashboardPage() {
                 <Settings className="h-4 w-4 mr-2" />
                 Settings
               </Button>
-              <Button variant="outline" size="sm" asChild className="border-gray-300 hover:border-gray-400 hover:bg-gray-50">
-                <Link href="/login">
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout
-                </Link>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleLogout}
+                disabled={loggingOut}
+                className="border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                {loggingOut ? 'Logging out...' : 'Logout'}
               </Button>
             </div>
           </div>

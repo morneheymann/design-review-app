@@ -95,7 +95,7 @@ export async function getDesignerStats(userId: string) {
     const { data: designs, error: designsError } = await supabase
       .from('designs')
       .select('*')
-      .eq('user_id', userId)
+      .eq('designer_id', userId)
 
     if (designsError) {
       console.error('Error fetching designs:', designsError)
@@ -335,7 +335,7 @@ export async function getUserDesigns(userId: string): Promise<Design[]> {
   const { data, error } = await supabase
     .from('designs')
     .select('*')
-    .eq('user_id', userId)
+    .eq('designer_id', userId)
     .order('created_at', { ascending: false })
 
   if (error) {
