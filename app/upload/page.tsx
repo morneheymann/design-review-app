@@ -24,7 +24,10 @@ import {
   Lightbulb,
   FileImage,
   AlertCircle,
-  Info
+  Info,
+  Palette,
+  Zap,
+  Award
 } from "lucide-react"
 import { createDesign } from "@/lib/designs"
 
@@ -203,17 +206,17 @@ export default function UploadPage() {
     const error = fileNumber === 1 ? errors.imageFile1 : errors.imageFile2
 
     return (
-      <div className="space-y-3">
-        <Label className="text-base font-medium">{title}</Label>
+      <div className="space-y-4">
+        <Label className="text-lg font-semibold text-gray-900">{title}</Label>
         <div
-          className={`relative border-2 border-dashed rounded-lg p-6 transition-all duration-200 ${
+          className={`relative border-2 border-dashed rounded-2xl p-8 transition-all duration-300 ${
             isDragActive 
-              ? 'border-blue-500 bg-blue-50' 
+              ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 shadow-lg scale-105' 
               : hasFile 
-                ? 'border-green-500 bg-green-50' 
+                ? 'border-green-500 bg-gradient-to-br from-green-50 to-emerald-50 shadow-lg' 
                 : error 
-                  ? 'border-red-500 bg-red-50' 
-                  : 'border-gray-300 bg-gray-50 hover:border-gray-400'
+                  ? 'border-red-500 bg-gradient-to-br from-red-50 to-pink-50' 
+                  : 'border-gray-300 bg-gradient-to-br from-gray-50 to-white hover:border-blue-400 hover:shadow-lg hover:scale-[1.02]'
           }`}
           onDragEnter={(e) => handleDrag(e, fileNumber)}
           onDragLeave={(e) => handleDrag(e, fileNumber)}
@@ -225,32 +228,34 @@ export default function UploadPage() {
               <img 
                 src={previewUrl} 
                 alt="Preview" 
-                className="w-full h-48 object-cover rounded-lg"
+                className="w-full h-64 object-cover rounded-xl shadow-lg"
               />
               <Button
                 type="button"
                 variant="destructive"
                 size="sm"
-                className="absolute top-2 right-2"
+                className="absolute top-3 right-3 shadow-lg hover:scale-110 transition-transform"
                 onClick={() => clearImage(fileNumber)}
               >
                 <X className="h-4 w-4" />
               </Button>
             </div>
           ) : (
-            <div className="text-center">
-              <FileImage className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-sm text-gray-600 mb-2">{subtitle}</p>
-              <p className="text-xs text-gray-500 mb-4">
+            <div className="text-center py-8">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <FileImage className="h-10 w-10 text-white" />
+              </div>
+              <p className="text-lg font-medium text-gray-700 mb-3">{subtitle}</p>
+              <p className="text-sm text-gray-500 mb-6">
                 PNG, JPG, GIF up to 10MB
               </p>
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => document.getElementById(`file-${fileNumber}`)?.click()}
-                className="w-full"
+                className="w-full bg-white hover:bg-gray-50 border-2 border-gray-300 hover:border-blue-400 text-gray-700 hover:text-blue-600 font-medium py-3 transition-all duration-200"
               >
-                <Upload className="h-4 w-4 mr-2" />
+                <Upload className="h-5 w-5 mr-2" />
                 Choose File
               </Button>
             </div>
@@ -264,8 +269,8 @@ export default function UploadPage() {
           />
         </div>
         {error && (
-          <p className="text-sm text-red-500 flex items-center">
-            <AlertCircle className="h-4 w-4 mr-1" />
+          <p className="text-sm text-red-500 flex items-center bg-red-50 p-3 rounded-lg border border-red-200">
+            <AlertCircle className="h-4 w-4 mr-2" />
             {error}
           </p>
         )}
@@ -274,80 +279,110 @@ export default function UploadPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-12 px-4">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-12">
           <Button
             variant="ghost"
             onClick={() => router.push('/dashboard')}
-            className="flex items-center gap-2 mb-4"
+            className="flex items-center gap-2 mb-6 text-gray-600 hover:text-gray-900 hover:bg-gray-100/50 px-4 py-2 rounded-lg transition-all duration-200"
           >
-            <ArrowLeft className="h-4 w-4" />
+            <ArrowLeft className="h-5 w-5" />
             Back to Dashboard
           </Button>
           
           <div className="text-center">
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 text-blue-800 text-sm font-medium mb-4">
-              <Sparkles className="h-4 w-4 mr-2" />
+            <div className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 text-sm font-semibold mb-6 shadow-lg border border-white/50">
+              <Sparkles className="h-5 w-5 mr-3 animate-pulse" />
               Create Design Comparison
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
               Upload Your Designs
             </h1>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               Upload two design variations to compare and get AI-powered feedback. 
-              This helps you make better design decisions.
+              This helps you make better design decisions and improve your work.
             </p>
           </div>
         </div>
 
         {/* Tips Card */}
-        <Card className="mb-8 border-blue-200 bg-blue-50">
-          <CardContent className="pt-6">
-            <div className="flex items-start space-x-3">
-              <Lightbulb className="h-5 w-5 text-blue-600 mt-0.5" />
+        <Card className="mb-12 border-0 shadow-xl bg-gradient-to-br from-blue-50 to-indigo-50">
+          <CardContent className="pt-8 pb-8">
+            <div className="flex items-start space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Lightbulb className="h-6 w-6 text-white" />
+              </div>
               <div>
-                <h3 className="font-semibold text-blue-900 mb-2">Tips for better results:</h3>
-                <ul className="text-sm text-blue-800 space-y-1">
-                  <li>• Use high-quality images (PNG, JPG, or GIF)</li>
-                  <li>• Make sure both designs are the same size and format</li>
-                  <li>• Provide clear, descriptive titles and descriptions</li>
-                  <li>• Focus on specific design elements you want feedback on</li>
-                </ul>
+                <h3 className="text-xl font-bold text-blue-900 mb-4">Tips for better results:</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <ul className="text-blue-800 space-y-2">
+                    <li className="flex items-center">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                      Use high-quality images (PNG, JPG, or GIF)
+                    </li>
+                    <li className="flex items-center">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                      Make sure both designs are the same size
+                    </li>
+                  </ul>
+                  <ul className="text-blue-800 space-y-2">
+                    <li className="flex items-center">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                      Provide clear, descriptive titles
+                    </li>
+                    <li className="flex items-center">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                      Focus on specific design elements
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Main Form */}
-        <Card className="shadow-xl">
-          <CardHeader>
-            <CardTitle className="text-xl">Design Comparison Details</CardTitle>
-            <CardDescription>
-              Fill in the details and upload your design variations
-            </CardDescription>
+        <Card className="shadow-2xl border-0 bg-white/80 backdrop-blur-sm">
+          <CardHeader className="pb-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                <Palette className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-2xl font-bold text-gray-900">Design Comparison Details</CardTitle>
+                <CardDescription className="text-gray-600 text-lg">
+                  Fill in the details and upload your design variations
+                </CardDescription>
+              </div>
+            </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pb-8">
             {isSuccess && (
-              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center">
-                <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                <span className="text-green-800">Design comparison uploaded successfully! Redirecting to dashboard...</span>
+              <div className="mb-8 p-6 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl flex items-center shadow-lg">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mr-4">
+                  <CheckCircle className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h4 className="text-green-900 font-semibold text-lg">Success!</h4>
+                  <p className="text-green-800">Design comparison uploaded successfully! Redirecting to dashboard...</p>
+                </div>
               </div>
             )}
             
-            <form onSubmit={handleSubmit} className="space-y-8">
+            <form onSubmit={handleSubmit} className="space-y-10">
               {errors.general && (
-                <div className="p-4 text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg flex items-center">
-                  <AlertCircle className="h-4 w-4 mr-2" />
+                <div className="p-6 text-sm text-red-500 bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-2xl flex items-center shadow-lg">
+                  <AlertCircle className="h-5 w-5 mr-3" />
                   {errors.general}
                 </div>
               )}
               
               {/* Title and Description */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="title" className="text-base font-medium">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <Label htmlFor="title" className="text-lg font-semibold text-gray-900">
                     Design Title *
                   </Label>
                   <Input
@@ -356,16 +391,21 @@ export default function UploadPage() {
                     placeholder="e.g., Homepage Header Design"
                     value={formData.title}
                     onChange={(e) => handleInputChange("title", e.target.value)}
-                    className={errors.title ? "border-red-500" : ""}
+                    className={`text-lg py-4 px-4 border-2 rounded-xl transition-all duration-200 ${
+                      errors.title ? "border-red-500 bg-red-50" : "border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    }`}
                     disabled={isLoading}
                   />
                   {errors.title && (
-                    <p className="text-sm text-red-500">{errors.title}</p>
+                    <p className="text-sm text-red-500 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-2" />
+                      {errors.title}
+                    </p>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="description" className="text-base font-medium">
+                <div className="space-y-3">
+                  <Label htmlFor="description" className="text-lg font-semibold text-gray-900">
                     Description *
                   </Label>
                   <Textarea
@@ -373,38 +413,43 @@ export default function UploadPage() {
                     placeholder="Describe what you're comparing and what feedback you're looking for..."
                     value={formData.description}
                     onChange={(e) => handleInputChange("description", e.target.value)}
-                    className={errors.description ? "border-red-500" : ""}
+                    className={`text-lg py-4 px-4 border-2 rounded-xl transition-all duration-200 ${
+                      errors.description ? "border-red-500 bg-red-50" : "border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    }`}
                     disabled={isLoading}
                     rows={3}
                   />
                   {errors.description && (
-                    <p className="text-sm text-red-500">{errors.description}</p>
+                    <p className="text-sm text-red-500 flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-2" />
+                      {errors.description}
+                    </p>
                   )}
                 </div>
               </div>
 
               {/* Upload Areas */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 {renderUploadArea(1, "Design A", "Upload your first design variation")}
                 {renderUploadArea(2, "Design B", "Upload your second design variation")}
               </div>
 
               {/* Submit Button */}
-              <div className="flex justify-center pt-6">
+              <div className="flex justify-center pt-8">
                 <Button
                   type="submit"
                   size="lg"
                   disabled={isLoading}
-                  className="px-8 py-3 text-lg"
+                  className="px-12 py-6 text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 rounded-xl"
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      <Loader2 className="h-6 w-6 mr-3 animate-spin" />
                       Uploading...
                     </>
                   ) : (
                     <>
-                      <Upload className="h-5 w-5 mr-2" />
+                      <Zap className="h-6 w-6 mr-3" />
                       Create Design Comparison
                     </>
                   )}
@@ -415,9 +460,9 @@ export default function UploadPage() {
         </Card>
 
         {/* Help Text */}
-        <div className="mt-8 text-center">
-          <div className="inline-flex items-center px-4 py-2 rounded-lg bg-gray-100 text-gray-600 text-sm">
-            <Info className="h-4 w-4 mr-2" />
+        <div className="mt-12 text-center">
+          <div className="inline-flex items-center px-6 py-4 rounded-2xl bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 text-lg shadow-lg">
+            <Info className="h-5 w-5 mr-3" />
             Need help? Check out our design guidelines for best results
           </div>
         </div>
