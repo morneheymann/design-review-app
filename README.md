@@ -1,24 +1,136 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Design Review App
+
+A modern UI/UX design review application built with Next.js, React, Tailwind CSS, and Shadcn UI.
+
+## Features
+
+- 🔐 User authentication (Designers and Testers)
+- 📱 Responsive design with Tailwind CSS
+- 🎨 Modern UI components with Shadcn UI
+- 🚀 Built with Next.js 15 and Turbopack
+- 🔥 Real-time database with Supabase
+- 📤 Image upload and rating system (coming soon)
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Node.js 18+ 
+- npm or yarn
+- Supabase account (for authentication and database)
+
+### Installation
+
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Set up environment variables:
+   ```bash
+   cp env.example .env.local
+   ```
+
+4. Configure Supabase:
+   - Create a new project at [supabase.com](https://supabase.com)
+   - Get your project URL and anon key from Settings > API
+   - Update `.env.local` with your credentials:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+   ```
+
+5. Run the development server:
+   ```bash
+   npm run dev
+   ```
+
+6. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## Supabase Setup
+
+### Database Tables
+
+The app expects the following tables in your Supabase database:
+
+#### Users Table
+```sql
+CREATE TABLE users (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  email TEXT NOT NULL,
+  name TEXT,
+  user_type TEXT CHECK (user_type IN ('designer', 'tester')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+#### Designs Table
+```sql
+CREATE TABLE designs (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  title TEXT NOT NULL,
+  description TEXT,
+  image_url TEXT,
+  designer_id UUID REFERENCES users(id),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+#### Ratings Table
+```sql
+CREATE TABLE ratings (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  design_id UUID REFERENCES designs(id) ON DELETE CASCADE,
+  tester_id UUID REFERENCES users(id),
+  rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+  feedback TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  UNIQUE(design_id, tester_id)
+);
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Row Level Security (RLS)
+
+Enable RLS on all tables and create appropriate policies for security.
+
+## Development
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+
+## Project Structure
+
+```
+design-review-app/
+├── app/                 # Next.js app directory
+│   ├── login/          # Login page
+│   ├── register/       # Registration page
+│   ├── dashboard/      # Dashboard page
+│   └── test/           # Test page
+├── components/         # Reusable components
+│   └── ui/            # Shadcn UI components
+├── lib/               # Utility functions
+│   ├── auth.ts        # Authentication utilities
+│   ├── supabase.ts    # Supabase client
+│   └── designs.ts     # Design management utilities
+└── public/            # Static assets
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Submit a pull request
+
+## License
+
+MIT License
 
 ## Learn More
 
