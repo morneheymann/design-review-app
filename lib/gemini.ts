@@ -1,7 +1,15 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
 // Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
+const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || '')
+
+console.log('Gemini configuration:', {
+  hasApiKey: !!process.env.NEXT_PUBLIC_GEMINI_API_KEY,
+  keyLength: process.env.NEXT_PUBLIC_GEMINI_API_KEY?.length,
+  keyPreview: process.env.NEXT_PUBLIC_GEMINI_API_KEY ? 
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY.substring(0, 10) + '...' : 
+    'none'
+})
 
 export interface AIAnalysis {
   recommendedDesign: 'A' | 'B' | 'tie'
@@ -28,6 +36,17 @@ export async function analyzeDesignPair(
   description?: string
 ): Promise<AIAnalysis> {
   try {
+    console.log('Starting AI analysis:', {
+      designAUrl,
+      designBUrl,
+      title,
+      hasApiKey: !!process.env.NEXT_PUBLIC_GEMINI_API_KEY
+    })
+
+    if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
+      throw new Error('Gemini API key is not configured')
+    }
+
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
 
     const prompt = `
@@ -69,18 +88,23 @@ Provide your analysis in the following JSON format:
 Be objective, thorough, and provide actionable insights.
 `
 
+    console.log('Fetching images for analysis...')
+    const imageA = await fetchImageAsBase64(designAUrl)
+    const imageB = await fetchImageAsBase64(designBUrl)
+    console.log('Images fetched successfully')
+
     const result = await model.generateContent([
       prompt,
       {
         inlineData: {
           mimeType: 'image/jpeg',
-          data: await fetchImageAsBase64(designAUrl)
+          data: imageA
         }
       },
       {
         inlineData: {
           mimeType: 'image/jpeg',
-          data: await fetchImageAsBase64(designBUrl)
+          data: imageB
         }
       }
     ])
@@ -88,16 +112,23 @@ Be objective, thorough, and provide actionable insights.
     const response = await result.response
     const text = response.text()
     
+    console.log('AI response received:', text.substring(0, 200) + '...')
+    
     // Extract JSON from the response
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
+      console.error('Failed to parse AI response. Full response:', text)
       throw new Error('Failed to parse AI response')
     }
 
     const analysis = JSON.parse(jsonMatch[0]) as AIAnalysis
+    console.log('Analysis completed successfully')
     return analysis
   } catch (error) {
     console.error('Gemini AI analysis error:', error)
+    if (error instanceof Error) {
+      throw new Error(`Failed to analyze designs with AI: ${error.message}`)
+    }
     throw new Error('Failed to analyze designs with AI')
   }
 }
