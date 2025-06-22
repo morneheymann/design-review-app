@@ -285,7 +285,7 @@ export default function DashboardPage() {
                   <CardTitle className="text-xl font-bold text-gray-900">Your Designs</CardTitle>
                 </div>
                 <Button variant="ghost" size="sm" asChild className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-                  <Link href="/designs">View All</Link>
+                  <Link href="/designs?view=my-designs">View All</Link>
                 </Button>
               </div>
             </CardHeader>
@@ -334,7 +334,7 @@ export default function DashboardPage() {
                   <CardTitle className="text-xl font-bold text-gray-900">Design Comparisons</CardTitle>
                 </div>
                 <Button variant="ghost" size="sm" asChild className="text-green-600 hover:text-green-700 hover:bg-green-50">
-                  <Link href="/designs">View All</Link>
+                  <Link href="/designs?view=my-comparisons">View All</Link>
                 </Button>
               </div>
             </CardHeader>

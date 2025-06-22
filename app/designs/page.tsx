@@ -1,66 +1,87 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ArrowLeft, Star, Eye, Search, Filter, GitCompare, Trash2, Sparkles, Upload, Palette, BarChart3, Image } from "lucide-react"
 import { getDesignPairsForReview, testDesignsAccess } from '@/lib/reviews'
+import { getUserDesigns, getUserDesignPairs } from '@/lib/designs'
 import { useAuth } from '@/lib/auth'
-import { DesignPair } from '@/lib/database.types'
+import { DesignPair, Design } from '@/lib/database.types'
 import { supabase } from '@/lib/supabase'
 
 export default function DesignsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user, loading: authLoading } = useAuth()
   const [designPairs, setDesignPairs] = useState<DesignPair[]>([])
+  const [individualDesigns, setIndividualDesigns] = useState<Design[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'reviewed'>('all')
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
+  // Get the view parameter from URL
+  const view = searchParams.get('view') || 'all' // 'all', 'my-designs', 'my-comparisons'
+
   useEffect(() => {
     if (!authLoading) {
-      loadDesignPairs()
+      loadData()
     }
-  }, [authLoading])
+  }, [authLoading, view])
 
-  const loadDesignPairs = async () => {
+  const loadData = async () => {
     try {
       setLoading(true)
-      console.log('Loading design pairs...')
+      console.log('Loading data with view:', view)
       console.log('Auth loading:', authLoading)
       console.log('User:', user)
       
-      // Test access first
-      const testResult = await testDesignsAccess()
-      console.log('Test result:', testResult)
-      
-      if (!testResult.success) {
-        console.error('Test failed:', testResult.error)
-        throw new Error(`Cannot access designs table: ${testResult.error ? (testResult.error as any).message || 'Unknown error' : 'Unknown error'}`)
+      if (view === 'my-designs') {
+        // Load individual designs for current user
+        if (!user) {
+          console.error('No user found for my-designs view')
+          return
+        }
+        const designs = await getUserDesigns(user.id)
+        console.log('Individual designs loaded:', designs)
+        setIndividualDesigns(designs)
+        setDesignPairs([])
+      } else if (view === 'my-comparisons') {
+        // Load design pairs for current user
+        if (!user) {
+          console.error('No user found for my-comparisons view')
+          return
+        }
+        const pairs = await getUserDesignPairs(user.id)
+        console.log('User design pairs loaded:', pairs)
+        setDesignPairs(pairs)
+        setIndividualDesigns([])
+      } else {
+        // Load all design pairs (default behavior)
+        const testResult = await testDesignsAccess()
+        console.log('Test result:', testResult)
+        
+        if (!testResult.success) {
+          console.error('Test failed:', testResult.error)
+          throw new Error(`Cannot access designs table: ${testResult.error ? (testResult.error as any).message || 'Unknown error' : 'Unknown error'}`)
+        }
+        
+        const designPairsData = await getDesignPairsForReview()
+        console.log('All design pairs loaded:', designPairsData)
+        setDesignPairs(designPairsData)
+        setIndividualDesigns([])
       }
-      
-      const designPairsData = await getDesignPairsForReview()
-      console.log('Design pairs loaded:', designPairsData)
-      console.log('Number of design pairs:', designPairsData.length)
-      
-      // Log each design pair ID for debugging
-      designPairsData.forEach((pair, index) => {
-        console.log(`Design pair ${index + 1}:`, { id: pair.id, title: pair.title })
-      })
-      
-      setDesignPairs(designPairsData)
     } catch (error) {
-      console.error('Error loading design pairs:', error)
+      console.error('Error loading data:', error)
       console.error('Error details:', {
         message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined
       })
-      // Show a more user-friendly error message
-      alert(`Error loading design pairs: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      alert(`Error loading data: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setLoading(false)
     }
@@ -79,6 +100,11 @@ export default function DesignsPage() {
     return matchesSearch
   })
 
+  const filteredIndividualDesigns = individualDesigns.filter(design => {
+    return design.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           (design.description && design.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  })
+
   const handleReviewDesignPair = (pairId: string) => {
     router.push(`/review/${pairId}`)
   }
@@ -87,6 +113,11 @@ export default function DesignsPage() {
     console.log('View button clicked for pair ID:', pairId)
     console.log('Navigating to:', `/design/${pairId}`)
     router.push(`/design/${pairId}`)
+  }
+
+  const handleViewIndividualDesign = (designId: string) => {
+    console.log('View button clicked for design ID:', designId)
+    router.push(`/design/${designId}`)
   }
 
   const checkDesignPairExists = async (pairId: string) => {
@@ -137,7 +168,7 @@ export default function DesignsPage() {
     const dbDesignPair = await checkDesignPairExists(pairId)
     if (!dbDesignPair) {
       alert('This design pair no longer exists in the database. The page will refresh to show current data.')
-      loadDesignPairs() // Refresh the data
+      loadData() // Refresh the data
       return
     }
 
@@ -226,6 +257,35 @@ export default function DesignsPage() {
     })
   }
 
+  // Get page title and description based on view
+  const getPageInfo = () => {
+    switch (view) {
+      case 'my-designs':
+        return {
+          title: 'My Individual Designs',
+          description: 'View and manage your uploaded individual designs.',
+          badge: 'Individual Designs',
+          icon: Image
+        }
+      case 'my-comparisons':
+        return {
+          title: 'My Design Comparisons',
+          description: 'View and manage your design comparison pairs.',
+          badge: 'Design Comparisons',
+          icon: GitCompare
+        }
+      default:
+        return {
+          title: 'Browse & Review Designs',
+          description: 'Explore design comparisons, provide feedback, and discover creative work from the community.',
+          badge: 'Design Gallery',
+          icon: Palette
+        }
+    }
+  }
+
+  const pageInfo = getPageInfo()
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
@@ -280,14 +340,22 @@ export default function DesignsPage() {
         {/* Page Header */}
         <div className="mb-12">
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 text-sm font-semibold mb-4 shadow-sm border border-white/50">
-            <Palette className="h-4 w-4 mr-2" />
-            Design Gallery
+            <pageInfo.icon className="h-4 w-4 mr-2" />
+            {pageInfo.badge}
           </div>
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            Browse & Review <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Designs</span>
+            {pageInfo.title.includes('My') ? (
+              <>
+                {pageInfo.title.split(' ').slice(0, -2).join(' ')} <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{pageInfo.title.split(' ').slice(-2).join(' ')}</span>
+              </>
+            ) : (
+              <>
+                Browse & Review <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Designs</span>
+              </>
+            )}
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl leading-relaxed">
-            Explore design comparisons, provide feedback, and discover creative work from the community.
+            {pageInfo.description}
           </p>
         </div>
 
@@ -298,190 +366,275 @@ export default function DesignsPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 type="text"
-                placeholder="Search designs..."
+                placeholder={view === 'my-designs' ? "Search your designs..." : "Search designs..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
               />
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant={filterStatus === 'all' ? 'default' : 'outline'}
-                onClick={() => setFilterStatus('all')}
-                className={`rounded-xl px-6 h-12 ${filterStatus === 'all' ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'}`}
-              >
-                All
-              </Button>
-              <Button
-                variant={filterStatus === 'pending' ? 'default' : 'outline'}
-                onClick={() => setFilterStatus('pending')}
-                className={`rounded-xl px-6 h-12 ${filterStatus === 'pending' ? 'bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'}`}
-              >
-                Pending
-              </Button>
-              <Button
-                variant={filterStatus === 'reviewed' ? 'default' : 'outline'}
-                onClick={() => setFilterStatus('reviewed')}
-                className={`rounded-xl px-6 h-12 ${filterStatus === 'reviewed' ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'}`}
-              >
-                Reviewed
-              </Button>
-            </div>
+            {view !== 'my-designs' && (
+              <div className="flex gap-2">
+                <Button
+                  variant={filterStatus === 'all' ? 'default' : 'outline'}
+                  onClick={() => setFilterStatus('all')}
+                  className={`rounded-xl px-6 h-12 ${filterStatus === 'all' ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'}`}
+                >
+                  All
+                </Button>
+                <Button
+                  variant={filterStatus === 'pending' ? 'default' : 'outline'}
+                  onClick={() => setFilterStatus('pending')}
+                  className={`rounded-xl px-6 h-12 ${filterStatus === 'pending' ? 'bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'}`}
+                >
+                  Pending
+                </Button>
+                <Button
+                  variant={filterStatus === 'reviewed' ? 'default' : 'outline'}
+                  onClick={() => setFilterStatus('reviewed')}
+                  className={`rounded-xl px-6 h-12 ${filterStatus === 'reviewed' ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'}`}
+                >
+                  Reviewed
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Results Count */}
         <div className="mb-8">
           <p className="text-gray-600">
-            Showing <span className="font-semibold text-gray-900">{filteredDesignPairs.length}</span> design{filteredDesignPairs.length !== 1 ? 's' : ''}
+            Showing <span className="font-semibold text-gray-900">
+              {view === 'my-designs' ? filteredIndividualDesigns.length : filteredDesignPairs.length}
+            </span> {view === 'my-designs' ? 'design' : 'design comparison'}{view === 'my-designs' ? (filteredIndividualDesigns.length !== 1 ? 's' : '') : (filteredDesignPairs.length !== 1 ? 's' : '')}
             {searchTerm && ` matching "${searchTerm}"`}
           </p>
         </div>
 
-        {/* Design Pairs Grid */}
-        {filteredDesignPairs.length === 0 ? (
-          <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-blue-50/30">
-            <CardContent className="text-center py-16">
-              <div className="w-20 h-20 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full flex items-center justify-center mx-auto mb-6">
-                <GitCompare className="h-10 w-10 text-gray-400" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-4">No designs found</h3>
-              <p className="text-gray-600 mb-8 max-w-md mx-auto">
-                {searchTerm 
-                  ? `No designs match your search for "${searchTerm}". Try adjusting your search terms.`
-                  : 'No design comparisons available yet. Be the first to upload a design!'
-                }
-              </p>
-              <Button 
-                asChild 
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-semibold px-8 py-4 rounded-xl"
-              >
-                <Link href="/upload">
-                  <Upload className="mr-3 h-5 w-5" />
-                  Upload Your First Design
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredDesignPairs.map((pair) => (
-              <Card 
-                key={pair.id} 
-                className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-white to-blue-50/30 group"
-              >
-                <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                        <GitCompare className="h-5 w-5 text-white" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg font-bold text-gray-900 line-clamp-2">{pair.title}</CardTitle>
-                        <CardDescription className="text-sm text-gray-600 mt-1">
-                          {formatDate(pair.created_at)}
-                        </CardDescription>
-                      </div>
-                    </div>
-                    {isDesignOwner(pair) && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteDesignPair(pair.id)}
-                        disabled={deletingId === pair.id}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2 h-8 w-8 rounded-lg"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
+        {/* Individual Designs Grid */}
+        {view === 'my-designs' && (
+          <>
+            {filteredIndividualDesigns.length === 0 ? (
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-blue-50/30">
+                <CardContent className="text-center py-16">
+                  <div className="w-20 h-20 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Image className="h-10 w-10 text-gray-400" />
                   </div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  {pair.description && (
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">{pair.description}</p>
-                  )}
-                  
-                  {/* Design Images Preview */}
-                  <div className="grid grid-cols-2 gap-3 mb-4">
-                    <div className="relative aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden group-hover:shadow-lg transition-shadow duration-200">
-                      {pair.design_a?.image_url ? (
-                        <img 
-                          src={pair.design_a.image_url} 
-                          alt="Design A"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <div className="w-8 h-8 bg-gradient-to-r from-gray-300 to-gray-400 rounded-lg flex items-center justify-center">
-                            <Image className="h-4 w-4 text-gray-500" />
-                          </div>
-                        </div>
-                      )}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                        <span className="text-xs font-semibold text-white">Design A</span>
-                      </div>
-                    </div>
-                    <div className="relative aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden group-hover:shadow-lg transition-shadow duration-200">
-                      {pair.design_b?.image_url ? (
-                        <img 
-                          src={pair.design_b.image_url} 
-                          alt="Design B"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <div className="w-8 h-8 bg-gradient-to-r from-gray-300 to-gray-400 rounded-lg flex items-center justify-center">
-                            <Image className="h-4 w-4 text-gray-500" />
-                          </div>
-                        </div>
-                      )}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                        <span className="text-xs font-semibold text-white">Design B</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-2">
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-4 w-4 text-yellow-500" />
-                        <span className="text-sm font-semibold text-gray-900">
-                          {pair.ratings?.length || 0}
-                        </span>
-                      </div>
-                      <span className="text-sm text-gray-500">reviews</span>
-                    </div>
-                    <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      pair.ratings && pair.ratings.length > 0 
-                        ? 'bg-green-100 text-green-700' 
-                        : 'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {pair.ratings && pair.ratings.length > 0 ? 'Reviewed' : 'Pending'}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Button 
-                      size="sm" 
-                      onClick={() => handleReviewDesignPair(pair.id)}
-                      className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 font-semibold rounded-xl"
-                    >
-                      <Star className="h-4 w-4 mr-2" />
-                      Review
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => handleViewDesignPair(pair.id)}
-                      className="border-gray-300 hover:border-gray-400 hover:bg-gray-50 transform hover:scale-105 transition-all duration-200 rounded-xl"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">No designs found</h3>
+                  <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                    {searchTerm 
+                      ? `No designs match your search for "${searchTerm}". Try adjusting your search terms.`
+                      : 'You haven\'t uploaded any individual designs yet. Start creating!'
+                    }
+                  </p>
+                  <Button 
+                    asChild 
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-semibold px-8 py-4 rounded-xl"
+                  >
+                    <Link href="/upload">
+                      <Upload className="mr-3 h-5 w-5" />
+                      Upload Your First Design
+                    </Link>
+                  </Button>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredIndividualDesigns.map((design) => (
+                  <Card 
+                    key={design.id} 
+                    className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-white to-blue-50/30 group cursor-pointer"
+                    onClick={() => handleViewIndividualDesign(design.id)}
+                  >
+                    <CardHeader className="pb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                          <Image className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg font-bold text-gray-900 line-clamp-2">{design.title}</CardTitle>
+                          <CardDescription className="text-sm text-gray-600 mt-1">
+                            {formatDate(design.created_at)}
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      {design.image_url && (
+                        <div className="relative aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-xl overflow-hidden group-hover:shadow-lg transition-shadow duration-200 mb-4">
+                          <img
+                            src={design.image_url}
+                            alt={design.title}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                              <Button size="sm" className="bg-white/90 hover:bg-white text-gray-900">
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Design
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {design.description && (
+                        <p className="text-sm text-gray-600 line-clamp-3 mb-4">
+                          {design.description}
+                        </p>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
+                          <span className="text-sm text-gray-500">Individual Design</span>
+                        </div>
+                        <Eye className="h-4 w-4 text-gray-400 group-hover:text-blue-600 transition-colors duration-200" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Design Pairs Grid */}
+        {view !== 'my-designs' && (
+          <>
+            {filteredDesignPairs.length === 0 ? (
+              <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-blue-50/30">
+                <CardContent className="text-center py-16">
+                  <div className="w-20 h-20 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <GitCompare className="h-10 w-10 text-gray-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">No designs found</h3>
+                  <p className="text-gray-600 mb-8 max-w-md mx-auto">
+                    {searchTerm 
+                      ? `No designs match your search for "${searchTerm}". Try adjusting your search terms.`
+                      : view === 'my-comparisons' 
+                        ? 'You haven\'t created any design comparisons yet. Start comparing!'
+                        : 'No design comparisons available yet. Be the first to upload a design!'
+                    }
+                  </p>
+                  <Button 
+                    asChild 
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 font-semibold px-8 py-4 rounded-xl"
+                  >
+                    <Link href="/upload">
+                      <Upload className="mr-3 h-5 w-5" />
+                      {view === 'my-comparisons' ? 'Create Your First Comparison' : 'Upload Your First Design'}
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredDesignPairs.map((pair) => (
+                  <Card 
+                    key={pair.id} 
+                    className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 bg-gradient-to-br from-white to-blue-50/30 group"
+                  >
+                    <CardHeader className="pb-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                            <GitCompare className="h-5 w-5 text-white" />
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg font-bold text-gray-900 line-clamp-2">{pair.title}</CardTitle>
+                            <CardDescription className="text-sm text-gray-600 mt-1">
+                              {formatDate(pair.created_at)}
+                            </CardDescription>
+                          </div>
+                        </div>
+                        {isDesignOwner(pair) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDeleteDesignPair(pair.id)
+                            }}
+                            disabled={deletingId === pair.id}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2 h-8 w-8 rounded-lg"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="grid grid-cols-2 gap-2 mb-4">
+                        {pair.design_a?.image_url && (
+                          <div className="relative aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden">
+                            <img
+                              src={pair.design_a.image_url}
+                              alt={pair.design_a.title || 'Design A'}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+                              <span className="text-xs font-semibold text-white">A</span>
+                            </div>
+                          </div>
+                        )}
+                        {pair.design_b?.image_url && (
+                          <div className="relative aspect-video bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden">
+                            <img
+                              src={pair.design_b.image_url}
+                              alt={pair.design_b.title || 'Design B'}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
+                              <span className="text-xs font-semibold text-white">B</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      {pair.description && (
+                        <p className="text-sm text-gray-600 line-clamp-3 mb-4">
+                          {pair.description}
+                        </p>
+                      )}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+                          <span className="text-sm text-gray-500">
+                            {pair.ratings && pair.ratings.length > 0 
+                              ? `${pair.ratings.length} review${pair.ratings.length !== 1 ? 's' : ''}`
+                              : 'No reviews yet'
+                            }
+                          </span>
+                        </div>
+                        <div className="flex space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleViewDesignPair(pair.id)
+                            }}
+                            className="border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                          >
+                            <Eye className="h-3 w-3 mr-1" />
+                            View
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleReviewDesignPair(pair.id)
+                            }}
+                            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                          >
+                            <Star className="h-3 w-3 mr-1" />
+                            Review
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
