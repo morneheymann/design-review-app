@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from "@/components/ui/button"
@@ -13,7 +13,7 @@ import { useAuth } from '@/lib/auth'
 import { DesignPair, Design } from '@/lib/database.types'
 import { supabase } from '@/lib/supabase'
 
-export default function DesignsPage() {
+function DesignsPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user, loading: authLoading } = useAuth()
@@ -638,5 +638,23 @@ export default function DesignsPage() {
         )}
       </main>
     </div>
+  )
+}
+
+export default function DesignsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-500 border-t-transparent mx-auto mb-6"></div>
+            <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-blue-500 border-b-transparent animate-spin" style={{ animationDirection: 'reverse' }}></div>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-700">Loading designs...</h2>
+        </div>
+      </div>
+    }>
+      <DesignsPageContent />
+    </Suspense>
   )
 } 
