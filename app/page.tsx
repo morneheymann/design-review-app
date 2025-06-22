@@ -112,7 +112,7 @@ export default function HomePage() {
                 AI-Powered
               </span>
               <br />
-              <span className="text-gray-900">Design Reviews</span>
+              <span className="text-gray-900">Versa</span>
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto mb-12 leading-relaxed">
               Get instant, intelligent feedback on your designs. Upload your work and receive detailed analysis powered by advanced AI technology.
