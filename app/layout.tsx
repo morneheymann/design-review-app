@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Design Review App",
+  title: "Versa",
   description: "A modern platform for design collaboration and review",
 };
 

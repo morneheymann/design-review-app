@@ -48,7 +48,7 @@ export default function HomePage() {
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-500 border-t-transparent mx-auto mb-6"></div>
             <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-blue-500 border-b-transparent animate-spin" style={{ animationDirection: 'reverse' }}></div>
           </div>
-          <h2 className="text-xl font-semibold text-white">Loading Design Review App...</h2>
+          <h2 className="text-xl font-semibold text-white">Loading Versa...</h2>
         </div>
       </div>
     )
@@ -79,7 +79,7 @@ export default function HomePage() {
                 <Sparkles className="h-6 w-6 text-white" />
               </div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                DesignReview
+                Versa
               </h1>
             </div>
             <div className="flex items-center space-x-6">
@@ -167,7 +167,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-20">
             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-              Why Choose DesignReview?
+              Why Choose Versa?
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               Experience the future of design feedback with our cutting-edge AI technology
@@ -304,7 +304,7 @@ export default function HomePage() {
             <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold">DesignReview</span>
+            <span className="text-xl font-bold">Versa</span>
           </div>
           <p className="text-gray-400 mb-6">
             AI-powered design feedback for modern creators
